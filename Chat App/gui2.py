@@ -1,44 +1,61 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 import sys
-#from functools import partial
 from PyQt5.QtCore import pyqtSlot
 from loginForm import *
-#from registerForm import *
-#from clientForm import *
+from registerForm import *
 
 class App(QMainWindow):
     def loginForm(self):
         self.close()
-        # Otvara se forma za login
         self.newApp = Login()
-        #self.wasd = self.newApp.inputUn.text()
-        #print(self.wasd)
+
+    def registerForm(self):
+        self.close()
+        self.app = Register()
 
     def __init__(self):
         super().__init__()
         self.title = 'Login and Register'
-        self.top = 450 - 125
-        self.left = 800 - 200
-        self.width = 400
-        self.height = 250
+
+        self.top = 450 - 150 
+        self.left = 800 - 175
+        self.width = 350
+        self.height = 300
         self.initUI()
-        # 1600 900
         
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        loginButton = QPushButton('Login', self)
-        loginButton.setToolTip('Nemam pojma cijeli dan')
-        loginButton.move(10, 10)
-        loginButton.clicked.connect(self.loginForm)
+        self.loginButton = QPushButton('Login', self)
+        self.loginButton.setToolTip('Nemam pojma cijeli dan')
+        self.loginButton.move(20, 70)
+        self.loginButton.resize(310, 40)
+        self.loginButton.clicked.connect(self.loginForm)
 
-        registerButton = QPushButton('Register', self)
-        registerButton.setToolTip('Nemam pojma cijeli dan')
-        registerButton.move(10, 50)
+        self.registerButton = QPushButton('Register', self)
+        self.registerButton.setToolTip('Nemam pojma cijeli dan')
+        self.registerButton.move(20, 120)
+        self.registerButton.resize(310, 40)
+        self.registerButton.clicked.connect(self.registerForm)
 
+        self.infoButton = QPushButton("", self)
+        self.infoButton.resize(32, 32)
+        self.infoButton.move(350 - 33, 300 - 33)
 
+        self.closeButton = QPushButton(self)
+        self.closeButton.setProperty("cssClass", "closeButton")
+        self.closeButton.resize(32, 32)
+        self.closeButton.setIcon(QtGui.QIcon('x.png'))
+        self.closeButton.setIconSize(QtCore.QSize(20, 20))
+        self.closeButton.clicked.connect(self.close)
+        self.closeButton.move(350 - 33, 1)
+
+        cssFile = open("gui2.css", "r")
+        self.setStyleSheet(cssFile.read())
+
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.show()
 
 if __name__ == '__main__':

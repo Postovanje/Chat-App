@@ -7,7 +7,8 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 import mysql.connector
 import sys
-
+from datetime import datetime
+from datetime import date
 
 '''
 users = {}
@@ -60,37 +61,52 @@ class ServerSocket():
         self.users = {}
         self.connected = []
 
+        self.loadChat = open("chat.txt", "r")
+        self.allChat = self.loadChat.read().split("\n")
+
         self.createServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.createServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-        self.createServer.bind(("127.0.0.1", 5522))
+        self.createServer.bind(("localhost", 5522))
         self.createServer.listen(5)
         self.initSocket()
 
     def ServerListen(self, socket):
         try:
             while True:
-                self.clientMessage = socket.recv(1024).decode("utf-8")
+                clientMessage = socket.recv(1024).decode("utf-8")
 
-                if(len(self.clientMessage) <= 0):
-                    print("Server je ugasen")
+                if(len(clientMessage) <= 0):
                     break
                 
-                self.ServerAddress = f"{socket.getpeername()[0]}:{socket.getpeername()[1]}"
-                if (len(self.users[self.ServerAddress]) == 0):
-                    self.users[str(self.ServerAddress)] = self.clientMessage                                                                                                            
-                    print(f"{self.clientMessage} je usao.")
+                ServerAddress = f"{socket.getpeername()[0]}:{socket.getpeername()[1]}"
+                if (len(self.users[ServerAddress]) == 0):
+                    self.users[str(ServerAddress)] = clientMessage                                                                                                            
+                    print(f"{clientMessage} je usao.")
                     self.connected.append(socket)
+                    self.sendChat(socket)
                 else:
-                    print(f"{self.users[self.ServerAddress]} >> {self.clientMessage}")
-                    self.Broadcast(socket, self.clientMessage)
+                    print(f"{self.users[ServerAddress]} >> {clientMessage}")
+                    self.chatFile = open("chat.txt", "a")
+                    self.Broadcast(socket, clientMessage)
+                    self.chatFile.write(f"{self.users[ServerAddress]} >> {clientMessage}" + '\n')
+                    self.chatFile.close()
+                    self.allChat.append(f"{self.users[ServerAddress]} >> {clientMessage}")
         except:
-            print('neko je izaso otac ga jebo')
+            print(f'neko je izaso otac ga jebo : {self.users[ServerAddress]}')
+            now = datetime.now()
+            date_time = now.strftime("%H:%M:%S")
+            # uzas = datetime.today() + " " + datetime.now().strftime("%H:%M:%S")
+            self.chatFile = open("chat.txt", "a")
+            #self.chatFile.write(f"[USER ({self.users[ServerAddress]}) LEFT] : {date.today()} {date_time}")
+            self.chatFile.close()
+            self.users.pop(ServerAddress)
+            self.connected.remove(socket)
 
     def initSocket(self):
         while True:
             self.clientSocket, self.address = self.createServer.accept()
     
-            self.clientSocket.send(bytes("Welcome to the chat room! ", "utf-8"))
+            self.clientSocket.send(bytes("Welcome to the chat room!", "utf-8"))
 
             self.users[f"{self.clientSocket.getpeername()[0]}:{self.clientSocket.getpeername()[1]}"] = "" # to je to,
 
@@ -105,5 +121,10 @@ class ServerSocket():
             print(f"Poslo sam poruku: {self.connected[i].getpeername()[0]}:{self.connected[i].getpeername()[1]}: {message}")
         print("Broadcast end")
 
+    def sendChat(self, socket):
+        for message in self.allChat:
+            time.sleep(0.1)
+            socket.send(bytes(message, "utf-8"))
+        
 if __name__ == "__main__":
     ServerSocket()
